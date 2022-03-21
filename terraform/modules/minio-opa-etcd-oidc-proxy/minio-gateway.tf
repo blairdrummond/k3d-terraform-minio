@@ -1,31 +1,19 @@
 # Create namespace
 resource "kubernetes_namespace" "minio_gateway" {
   metadata {
-    name = "minio-gateway"
+    name = var.namespace
   }
-}
-
-# Create secret for minio creds from the other minio's secret
-data "kubernetes_secret" "minio" {
-  metadata {
-    name      = "minio"
-    namespace = "minio"
-  }
-  depends_on = [
-    helm_release.minio,
-    kubernetes_secret.minio_oidc_config
-  ]
 }
 
 resource "kubernetes_secret" "minio_clone" {
   metadata {
     name      = "minio"
-    namespace = "minio-gateway"
+    namespace = var.namespace
   }
 
   data = {
-    "root-password" = data.kubernetes_secret.minio.data["root-password"]
-    "root-user"     = data.kubernetes_secret.minio.data["root-user"]
+    "root-user"     = var.access_key
+    "root-password" = var.secret_key
   }
 }
 

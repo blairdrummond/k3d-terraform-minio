@@ -1,7 +1,7 @@
 resource "kubernetes_config_map" "opa_policy" {
   metadata {
     name      = "minio-gateway-opa"
-    namespace = "minio-gateway"
+    namespace = var.namespace
   }
 
   data = {
@@ -13,26 +13,10 @@ resource "kubernetes_config_map" "opa_policy" {
   ]
 }
 
-resource "kubernetes_config_map" "opa_mitmproxy_script" {
-  metadata {
-    name      = "opa-mitmproxy-script"
-    namespace = "minio-gateway"
-  }
-
-  data = {
-    "script.py" = "${file("mitmproxy-script.py")}"
-  }
-
-  depends_on = [
-    kubernetes_namespace.minio_gateway
-  ]
-}
-
-
 resource "kubernetes_service" "opa_service" {
   metadata {
     name      = "opa"
-    namespace = "minio-gateway"
+    namespace = var.namespace
     labels = {
       app = "opa"
     }
@@ -44,8 +28,7 @@ resource "kubernetes_service" "opa_service" {
     port {
       name        = "http"
       port        = 8181
-      # Forward to nginx for logging
-      target_port = 8000
+      target_port = 8181
       protocol    = "TCP"
     }
 
@@ -61,7 +44,7 @@ resource "kubernetes_service" "opa_service" {
 resource "kubernetes_deployment" "opa" {
   metadata {
     name      = "opa"
-    namespace = "minio-gateway"
+    namespace = var.namespace
     labels = {
       app = "opa"
     }
@@ -113,38 +96,6 @@ resource "kubernetes_deployment" "opa" {
             read_only  = "true"
           }
 
-        }
-
-        container {
-
-          name    = "mitmproxy"
-          image   = "mitmproxy/mitmproxy"
-          command = ["mitmdump"]
-          args    = [
-            "--mode", "reverse:http://0.0.0.0:8181",
-            "-p", "8000",
-            "-v",
-            "-s", "/tmp/script.py"
-            ]
-
-          port {
-            container_port = "8000"
-            name           = "http"
-          }
-
-          volume_mount {
-            name       = "mitmproxy-script"
-            mount_path = "/tmp/script.py"
-            sub_path   = "script.py"
-            read_only  = "true"
-          }
-        }
-
-        volume {
-          name = "mitmproxy-script"
-          config_map {
-            name = "opa-mitmproxy-script"
-          }
         }
 
         volume {

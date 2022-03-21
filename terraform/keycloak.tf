@@ -1,4 +1,3 @@
-
 # MinIO Realm
 resource "keycloak_realm" "minio_realm" {
   realm        = "minio"
@@ -96,7 +95,7 @@ resource "keycloak_role" "minio_client_role" {
 }
 
 # I had to get the role ID by exporting it from the Keycloak UI as JSON
-# Creating this resource may fail, as this resource already exists in keycloak. 
+# Creating this resource may fail, as this resource already exists in keycloak.
 # In order to resolve this:
 # 1. We found the resource within Keycloak UI in the exported json.
 # 2. Next, we took the id field's value for default-roles-minio, and ran the below command using the id.
@@ -121,28 +120,28 @@ resource "keycloak_role" "minio_client_role" {
 # }
 
 
-resource "kubernetes_secret" "minio_oidc_config" {
-  metadata {
-    name      = "minio-oidc-config"
-    namespace = "minio-gateway"
-  }
-
-  data = {
-    "MINIO_IDENTITY_OPENID_CONFIG_URL"    = "http://keycloak.keycloak:80/auth/realms/${keycloak_realm.minio_realm.id}/.well-known/openid-configuration"
-    "MINIO_IDENTITY_OPENID_CLIENT_ID"     = keycloak_openid_client.openid_client.client_id
-    "MINIO_IDENTITY_OPENID_CLIENT_SECRET" = keycloak_openid_client.openid_client.client_secret
-    "MINIO_IDENTITY_OPENID_REDIRECT_URI"  = "http://${kubernetes_service.minio_loadbalancer.metadata[0].name}.${kubernetes_service.minio_loadbalancer.metadata[0].namespace}/oauth_callback"
-  }
-}
-
-resource "kubernetes_secret" "minio_initial_user" {
-  metadata {
-    name      = "minio-initial-user"
-    namespace = "minio-gateway"
-  }
-
-  data = {
-    "username" = "admin"
-    "password" = random_string.keycloak_minio_user_password.result
-  }
-}
+# resource "kubernetes_secret" "minio_oidc_config" {
+#   metadata {
+#     name      = "minio-oidc-config"
+#     namespace = "minio-gateway"
+#   }
+#
+#   data = {
+#     "MINIO_IDENTITY_OPENID_CONFIG_URL"    = "http://keycloak.keycloak:80/auth/realms/${keycloak_realm.minio_realm.id}/.well-known/openid-configuration"
+#     "MINIO_IDENTITY_OPENID_CLIENT_ID"     = keycloak_openid_client.openid_client.client_id
+#     "MINIO_IDENTITY_OPENID_CLIENT_SECRET" = keycloak_openid_client.openid_client.client_secret
+#     "MINIO_IDENTITY_OPENID_REDIRECT_URI"  = "http://${kubernetes_service.minio_loadbalancer.metadata[0].name}.${kubernetes_service.minio_loadbalancer.metadata[0].namespace}/oauth_callback"
+#   }
+# }
+#
+# resource "kubernetes_secret" "minio_initial_user" {
+#   metadata {
+#     name      = "minio-initial-user"
+#     namespace = "minio-gateway"
+#   }
+#
+#   data = {
+#     "username" = "admin"
+#     "password" = random_string.keycloak_minio_user_password.result
+#   }
+# }

@@ -14,3 +14,20 @@
 2. Open http://minio.minio-gateway in a browser and login using the credentials. If you forget them, use
 
 > task password:minio
+
+# Tests
+
+## Feature sets
+
+- OIDC Sign-On
+- STS Tokens
+- Open Policy Agent integration
+
+- (Optional) Azure service principle
+
+## Azure Blob to S3
+
+- MinIO (baseline)
+- MinIO Gateway
+- s3proxy
+- SeaweedFS?

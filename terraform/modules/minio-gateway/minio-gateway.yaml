@@ -1,0 +1,29 @@
+nameOverride: "minio-gateway"
+commonLabels:
+  app: minio-gateway
+gateway:
+  enabled: true
+  replicaCount: 1
+  type: s3
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: "25%"
+      maxUnavailable: "25%"
+  # autoscaling:
+  #   enabled: true
+  #   minReplicas: "2"
+  #   maxReplicas: "4"
+  #   targetCPU: "60"
+  #   targetMemory: "60"
+  auth:
+    existingSecret: minio-gateway-secret
+    azure:
+      storageAccountNameExistingSecret: "azure-blob-storage"
+      storageAccountNameExistingSecretKey: "storageAccountName"
+      storageAccountKeyExistingSecret: "azure-blob-storage"
+      storageAccountKeyExistingSecretKey: "storageAccountKey"
+ingress:
+  enabled: false
+resources: {}
+tolerations: []

@@ -1,12 +1,12 @@
 resource "kubernetes_namespace" "minio" {
   metadata {
-    name = "minio"
+    name = var.namespace
   }
 }
 
 resource "helm_release" "minio" {
   name       = "minio"
-  namespace  = "minio"
+  namespace  = var.namespace
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "minio"
   version    = "10.1.12"
@@ -19,5 +19,15 @@ resource "helm_release" "minio" {
   #   }
   depends_on = [
     kubernetes_namespace.minio
+  ]
+}
+
+data "kubernetes_secret" "minio" {
+  metadata {
+    name      = "minio"
+    namespace = var.namespace
+  }
+  depends_on = [
+    helm_release.minio
   ]
 }

@@ -1,6 +1,6 @@
 resource "helm_release" "etcd" {
   name       = "etcd"
-  namespace  = "minio-gateway"
+  namespace  = var.namespace
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "etcd"
   version    = "6.13.5"

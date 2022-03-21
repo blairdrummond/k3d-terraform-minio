@@ -65,8 +65,8 @@ tasks:
       - task: keycloak:install
       - task: hosts:keycloak
       - task: terraform:apply
-      - task: hosts:minio
-      - task: password:minio
+      #- task: hosts:minio
+      #- task: password:minio
 
   k3d:create:
     prefix: k3d > create
@@ -180,8 +180,7 @@ tasks:
           jq -e '.status.phase == "Active"'
       - | 
         set -o pipefail;
-        {{.KUBECTL}} get statefulsets.apps -n keycloak keycloak -o json | \
-          jq -e '.status | .replicas == .readyReplicas'
+        {{.KUBECTL}} get statefulsets.apps -n keycloak keycloak
 
   keycloak:uninstall:
     desc: uninstall keycloak helm chart
@@ -327,3 +326,33 @@ tasks:
         {{.KUBECTL}} get secret minio-initial-user \
           -n minio-gateway \
           -o json | jq -r '.data | to_entries | map({(.key): .value | @base64d}) | add'
+
+  password:minio-backend:
+    desc: Get the MinIO Password
+    cmds:
+      - |
+        printf '{{.RED}}' >&2
+        echo "# MinIO Backend Username and Password" >&2
+        printf '{{.RESET}}' >&2
+      - |
+        {{.KUBECTL}} get secret minio -n minio \
+          -o json | jq -r '.data | to_entries | map({(.key): .value | @base64d}) | add'
+
+  aws-browser-ns:
+    cmds:
+      - "{{.KUBECTL}} create ns aws-browser"
+    status:
+      - |
+        set -o pipefail;
+        kubectl get ns metallb-system -o json | \
+          jq -e '.status.phase == "Active"'
+  aws-browser-configmap:
+    desc: create the aws-s3-browser configmap
+    cmds:
+      - |
+          {{.KUBECTL}} delete cm -n aws-js-s3-explorer aws-js-s3-explorer
+      - |
+          {{.KUBECTL}} create cm -n aws-js-s3-explorer aws-js-s3-explorer \
+              --from-file=submodules/aws-js-s3-explorer/index.html \
+              --from-file=submodules/aws-js-s3-explorer/explorer.css \
+              --from-file=submodules/aws-js-s3-explorer/explorer.js
